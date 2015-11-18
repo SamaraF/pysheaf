@@ -345,10 +345,21 @@ class SheafCoface(Coface):
 
     def __repr__(self):
         return "(index=" + str(self.index) + ",orientation="+str(self.orientation)+",corestriction="+str(self.corestriction)+")"
+
+    def corestriction(dest): #intended to be a first-class fn
+#each coface promoted to sheaf coface
+        #handing it a normal coface and turning it into a sheaf coface?
+        #dest.stalk #stalk of the coface that is indexed
+        return lambda x :
+            if x in dest.stalk:
+                return x
+            else:
+                return None
         
-class SheafCell(Cell):
+        
+class SheafCell(Cell): #handed a cell not a complex???
     """A cell in a cell complex with a sheaf over it"""
-    def __init__(self,dimension,cofaces=[],compactClosure=True,stalkDim=1):
+    def __init__(self,dimension,cofaces=[],compactClosure=True,stalkDim=1, stalk=[]):
         if cofaces:
             try:
                 self.stalkDim=cofaces[0].corestriction.shape[1]
@@ -356,6 +367,17 @@ class SheafCell(Cell):
                 self.stalkDim=0
         else:
             self.stalkDim=stalkDim
+
+        self.stalk[]= [] #to make list of all vertices in the thing + N
+        nodelist = Cell.cofaces    #the list of the given cell's cofaces
+        for check in cells:        #HOW TO get back up to complex to run through other cells to see if cofaces match???
+            checklist = check.cofaces
+            for n in nodelist:           #checks cell's cofaces against all other cell's cofaces
+                for ch in checklist:
+                    if c != check:      #don't want cells to stick all their own cofaces in the list
+                            if n == ch:
+                                self.c.stalk.append(n) #each cell has its own list/stalk
+        self.stalk.append(None)     
         Cell.__init__(self,dimension,compactClosure,cofaces)
 
     def __repr__(self):
@@ -705,7 +727,35 @@ class ChainSheaf(Poset,Sheaf):
                                               for cf in c.cofaces]))
 
         Sheaf.__init__(self,shcells)
+#------------------------------------------------------------------------------------------------------------------------------------------
+class ActivationSheaf(Sheaf):
+    def __init__(self, CellComplex):
+#stalk construct moved to inside SheafCell itself
+##             #for each cell assign the set of nodes that have a coface in common with c, + the symbol "|-"
+##            self.cells.stalk= [] #prev. code mentions StalkDim but not actual stalk
+##            for c in cells:
+##                nodelist = c.cofaces    #the list of cofaces for a particular cell
+##                for check in cells:        #run through other cells to see if cofaces match
+##                    checklist = check.cofaces
+##                    for n in nodelist:           #checks cell's cofaces against all other cell's cofaces
+##                        for ch in checklist:
+##                            if c != check:      #don't want cells to stick all their own cofaces in the list
+##                                    if n == ch:
+##                                        self.c.stalk.append(n) #each cell has its own list/stalk
+##                self.c.Ac.append("-|")     #actual symbol crashes IDLE
 
+        def RestrictionFn(self,n):
+            for c in cells:
+                for cof in self.cells.coface:
+                    contained = False
+                    for check in cof.stalk:
+                        if n == check:
+                            return n
+            return "-|"       
+
+
+
+    
 # Flow sheaves
 class DirectedGraph(CellComplex):
     def __init__(self,graph,vertex_capacity=-1):
